@@ -1,0 +1,370 @@
+@model ResumeBuilder.Application.DTOs.ResumeWizardDto
+@{
+    ViewData["Title"] = "Resume Builder Wizard";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="page-header text-center mb-5">
+            <h1 class="page-title">Build Your Professional Resume</h1>
+            <p class="text-muted">Follow our 4-step process to land your dream job.</p>
+        </div>
+
+        <div class="custom-card shadow-lg border-0 overflow-hidden">
+            <div class="row g-0">
+                <div class="col-md-3 bg-dark p-4 text-white">
+                    <div class="wizard-steps">
+                        <div class="step-item mb-4 @(Model.CurrentStep >= 1 ? "active" : "")">
+                            <div class="step-num shadow">1</div>
+                            <div class="step-label">Personal Info</div>
+                        </div>
+                        <div class="step-item mb-4 @(Model.CurrentStep >= 2 ? "active" : "")">
+                            <div class="step-num">2</div>
+                            <div class="step-label">Education</div>
+                        </div>
+                        <div class="step-item mb-4 @(Model.CurrentStep >= 3 ? "active" : "")">
+                            <div class="step-num">3</div>
+                            <div class="step-label">Experience</div>
+                        </div>
+                        <div class="step-item @(Model.CurrentStep >= 4 ? "active" : "")">
+                            <div class="step-num">4</div>
+                            <div class="step-label">Skills</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-9 p-5" id="formContainer">
+                    <form asp-action="Create" method="post" id="resumeForm">
+                        <input type="hidden" asp-for="CurrentStep" id="currentStepInput" />
+                        <div asp-validation-summary="All" class="alert alert-danger mb-4" role="alert"></div>
+                        <!-- Step 1: Personal Info -->
+                        <div class="step-content @(Model.CurrentStep == 1 ? "" : "d-none")" id="step1">
+                            <h4 class="fw-bold mb-4">Let's start with your contact info</h4>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold small">Resume Title</label>
+                                <input asp-for="PersonalInfo.Title" class="form-control" placeholder="e.g. Full Stack Developer 2026" required />
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold small">Full Name</label>
+                                    <input asp-for="PersonalInfo.FullName" class="form-control" required />
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold small">Email</label>
+                                    <input asp-for="PersonalInfo.Email" class="form-control" required />
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label fw-bold small">Professional Summary</label>
+                                <textarea asp-for="PersonalInfo.Summary" class="form-control" rows="4" placeholder="Briefly describe your career goals and key achievements..."></textarea>
+                            </div>
+                            
+                            <h5 class="fw-bold mb-3 mt-4">Contact Details</h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold small">Phone Number</label>
+                                    <input asp-for="PersonalInfo.Phone" class="form-control" placeholder="+1 (555) 000-0000" />
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold small">Address</label>
+                                    <input asp-for="PersonalInfo.Address" class="form-control" placeholder="City, State" />
+                                </div>
+                            </div>
+                            
+                            <h5 class="fw-bold mb-3 mt-4">Social Links</h5>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label fw-bold small">LinkedIn URL</label>
+                                    <input asp-for="PersonalInfo.LinkedInUrl" class="form-control" placeholder="https://linkedin.com/in/..." />
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label fw-bold small">GitHub URL</label>
+                                    <input asp-for="PersonalInfo.GitHubUrl" class="form-control" placeholder="https://github.com/..." />
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label fw-bold small">Portfolio URL</label>
+                                    <input asp-for="PersonalInfo.PortfolioUrl" class="form-control" placeholder="https://yourportfolio.com" />
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <button type="button" class="btn btn-primary px-4" onclick="nextStep(2)">Continue to Education <i class="fas fa-arrow-right ms-2"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Education -->
+                        <div class="step-content @(Model.CurrentStep == 2 ? "" : "d-none")" id="step2">
+                            <h4 class="fw-bold mb-4">Where did you study?</h4>
+                            <div id="educationList">
+                                @if (Model.Education != null && Model.Education.Count > 0)
+                                {
+                                    for (int i = 0; i < Model.Education.Count; i++)
+                                    {
+                                        <div class="edu-entry p-3 bg-light rounded-3 mb-3 border position-relative">
+                                            <div class="row">
+                                                <div class="col-md-6 mb-2">
+                                                    <label class="small fw-bold">Institution</label>
+                                                    <input name="Education[@i].Institution" value="@Model.Education[i].Institution" class="form-control form-control-sm" required />
+                                                </div>
+                                                <div class="col-md-6 mb-2">
+                                                    <label class="small fw-bold">Degree</label>
+                                                    <input name="Education[@i].Degree" value="@Model.Education[i].Degree" class="form-control form-control-sm" required />
+                                                </div>
+                                                <div class="col-md-4 mb-2">
+                                                    <label class="small fw-bold">Start Date</label>
+                                                    <input name="Education[@i].StartDate" type="date" value="@Model.Education[i].StartDate.ToString("yyyy-MM-dd")" class="form-control form-control-sm" required />
+                                                </div>
+                                                <div class="col-md-4 mb-2">
+                                                    <label class="small fw-bold">End Date</label>
+                                                    <input name="Education[@i].EndDate" type="date" value="@(Model.Education[i].EndDate?.ToString("yyyy-MM-dd"))" class="form-control form-control-sm" />
+                                                </div>
+                                                <div class="col-md-4 mb-2">
+                                                    <label class="small fw-bold">GPA</label>
+                                                    <input name="Education[@i].GPA" value="@Model.Education[i].GPA" class="form-control form-control-sm" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <!-- Default Empty Entry -->
+                                    <div class="edu-entry p-3 bg-light rounded-3 mb-3 border position-relative">
+                                        <div class="row">
+                                            <div class="col-md-6 mb-2">
+                                                <label class="small fw-bold">Institution</label>
+                                                <input name="Education[0].Institution" class="form-control form-control-sm" required />
+                                            </div>
+                                            <div class="col-md-6 mb-2">
+                                                <label class="small fw-bold">Degree</label>
+                                                <input name="Education[0].Degree" class="form-control form-control-sm" required />
+                                            </div>
+                                            <div class="col-md-4 mb-2">
+                                                <label class="small fw-bold">Start Date</label>
+                                                <input name="Education[0].StartDate" type="date" class="form-control form-control-sm" required />
+                                            </div>
+                                            <div class="col-md-4 mb-2">
+                                                <label class="small fw-bold">End Date</label>
+                                                <input name="Education[0].EndDate" type="date" class="form-control form-control-sm" />
+                                            </div>
+                                            <div class="col-md-4 mb-2">
+                                                <label class="small fw-bold">GPA</label>
+                                                <input name="Education[0].GPA" class="form-control form-control-sm" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-secondary mb-4" onclick="addEducation()"><i class="fas fa-plus me-1"></i> Add Another Education</button>
+                            <div class="d-flex justify-content-between">
+                                <button type="button" class="btn btn-light px-4" onclick="prevStep(1)"><i class="fas fa-arrow-left me-2"></i> Back</button>
+                                <button type="button" class="btn btn-primary px-4" onclick="nextStep(3)">Next: Experience <i class="fas fa-arrow-right ms-2"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Experience -->
+                        <div class="step-content @(Model.CurrentStep == 3 ? "" : "d-none")" id="step3">
+                            <h4 class="fw-bold mb-4">Work Experience</h4>
+                            <div id="experienceList">
+                                @if (Model.Experience != null && Model.Experience.Count > 0)
+                                {
+                                    for (int i = 0; i < Model.Experience.Count; i++)
+                                    {
+                                        <div class="exp-entry p-3 bg-light rounded-3 mb-3 border">
+                                            <div class="row">
+                                                <div class="col-md-6 mb-2">
+                                                    <label class="small fw-bold">Company Name</label>
+                                                    <input name="Experience[@i].CompanyName" value="@Model.Experience[i].CompanyName" class="form-control form-control-sm" required />
+                                                </div>
+                                                <div class="col-md-6 mb-2">
+                                                    <label class="small fw-bold">Job Title</label>
+                                                    <input name="Experience[@i].JobTitle" value="@Model.Experience[i].JobTitle" class="form-control form-control-sm" required />
+                                                </div>
+                                                <div class="col-md-12 mb-2">
+                                                    <label class="small fw-bold">Description</label>
+                                                    <textarea name="Experience[@i].Description" class="form-control form-control-sm" rows="2">@Model.Experience[i].Description</textarea>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="small fw-bold">Start Date</label>
+                                                    <input name="Experience[@i].StartDate" type="date" value="@Model.Experience[i].StartDate.ToString("yyyy-MM-dd")" class="form-control form-control-sm" required />
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="small fw-bold">End Date</label>
+                                                    <input name="Experience[@i].EndDate" type="date" value="@(Model.Experience[i].EndDate?.ToString("yyyy-MM-dd"))" class="form-control form-control-sm" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="exp-entry p-3 bg-light rounded-3 mb-3 border">
+                                        <div class="row">
+                                            <div class="col-md-6 mb-2">
+                                                <label class="small fw-bold">Company Name</label>
+                                                <input name="Experience[0].CompanyName" class="form-control form-control-sm" required />
+                                            </div>
+                                            <div class="col-md-6 mb-2">
+                                                <label class="small fw-bold">Job Title</label>
+                                                <input name="Experience[0].JobTitle" class="form-control form-control-sm" required />
+                                            </div>
+                                            <div class="col-md-12 mb-2">
+                                                <label class="small fw-bold">Description</label>
+                                                <textarea name="Experience[0].Description" class="form-control form-control-sm" rows="2"></textarea>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="small fw-bold">Start Date</label>
+                                                <input name="Experience[0].StartDate" type="date" class="form-control form-control-sm" required />
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="small fw-bold">End Date</label>
+                                                <input name="Experience[0].EndDate" type="date" class="form-control form-control-sm" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-secondary mb-4" onclick="addExperience()"><i class="fas fa-plus me-1"></i> Add Another Work</button>
+                            <div class="d-flex justify-content-between">
+                                <button type="button" class="btn btn-light px-4" onclick="prevStep(2)"><i class="fas fa-arrow-left me-2"></i> Back</button>
+                                <button type="button" class="btn btn-primary px-4" onclick="nextStep(4)">Final: Skills <i class="fas fa-arrow-right ms-2"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- Step 4: Skills -->
+                        <div class="step-content @(Model.CurrentStep == 4 ? "" : "d-none")" id="step4">
+                            <h4 class="fw-bold mb-2">Your Superpowers</h4>
+                            <p class="text-muted small mb-4">Our AI works best when you list specific technical skills like "C#", "SQL", or "Project Management".</p>
+                            <div id="skillsList" class="row g-2 mb-4">
+                                @if (Model.Skills != null && Model.Skills.Count > 0)
+                                {
+                                    for (int i = 0; i < Model.Skills.Count; i++)
+                                    {
+                                        <div class="col-md-6 skill-entry">
+                                            <div class="input-group input-group-sm">
+                                                <input name="Skills[@i].SkillName" value="@Model.Skills[i].SkillName" class="form-control" required placeholder="Skill Name (e.g. C#)" />
+                                                <select name="Skills[@i].ProficiencyLevel" class="form-select" style="max-width: 100px;">
+                                                    <option value="1" selected="@(Model.Skills[i].ProficiencyLevel == 1 ? "selected" : null)">Beginner</option>
+                                                    <option value="3" selected="@(Model.Skills[i].ProficiencyLevel == 3 ? "selected" : null)">Mid</option>
+                                                    <option value="5" selected="@(Model.Skills[i].ProficiencyLevel == 5 ? "selected" : null)">Expert</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="col-md-6 skill-entry">
+                                        <div class="input-group input-group-sm">
+                                            <input name="Skills[0].SkillName" class="form-control" required placeholder="Skill Name (e.g. C#)" />
+                                            <select name="Skills[0].ProficiencyLevel" class="form-select" style="max-width: 100px;">
+                                                <option value="1">Beginner</option>
+                                                <option value="3" selected>Mid</option>
+                                                <option value="5">Expert</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-secondary mb-5" onclick="addSkill()"><i class="fas fa-plus me-1"></i> Add More Skills</button>
+                            <div class="d-flex justify-content-between">
+                                <button type="button" class="btn btn-light px-4" onclick="prevStep(3)"><i class="fas fa-arrow-left me-2"></i> Back</button>
+                                <button type="submit" class="btn btn-success px-5 fw-bold shadow-sm">Finish & Generate AI Matches <i class="fas fa-magic ms-2"></i></button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .wizard-steps .step-item { display: flex; align-items: center; opacity: 0.5; transition: 0.3s; }
+    .wizard-steps .step-item.active { opacity: 1; }
+    .wizard-steps .step-num { width: 32px; height: 32px; border: 2px solid white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 15px; }
+    .wizard-steps .step-item.active .step-num { background: var(--primary); border-color: var(--primary); }
+    .wizard-steps .step-label { font-weight: 500; font-size: 0.9rem; }
+    .form-control:focus, .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 0.25rem rgba(79, 70, 229, 0.1); }
+</style>
+
+@section Scripts {
+    <script>
+        let eduCount = @(Model.Education != null && Model.Education.Count > 0 ? Model.Education.Count : 1);
+        let expCount = @(Model.Experience != null && Model.Experience.Count > 0 ? Model.Experience.Count : 1);
+        let skillCount = @(Model.Skills != null && Model.Skills.Count > 0 ? Model.Skills.Count : 1);
+
+        function nextStep(step) {
+            // Validate current step before moving forward
+            if (step > 1) {
+                const currentStepId = 'step' + (step - 1);
+                const currentStepContainer = document.getElementById(currentStepId);
+                const inputs = currentStepContainer.querySelectorAll('input, textarea, select');
+                let isValid = true;
+
+                for (let input of inputs) {
+                    if (!input.checkValidity()) {
+                        isValid = false;
+                        input.reportValidity();
+                        return; // Stop and show error
+                    }
+                }
+            }
+
+            document.querySelectorAll('.step-content').forEach(s => s.classList.add('d-none'));
+            document.getElementById('step' + step).classList.remove('d-none');
+            
+            // Update hidden input for CurrentStep
+            document.getElementById('currentStepInput').value = step;
+
+            document.querySelectorAll('.step-item').forEach((item, index) => {
+                if(index + 1 === step) item.classList.add('active');
+                else if(index + 1 < step) item.classList.add('active'); // Completed
+                else item.classList.remove('active');
+            });
+        }
+
+        function prevStep(step) {
+            nextStep(step);
+        }
+
+        function addEducation() {
+            const html = `<div class="edu-entry p-3 bg-light rounded-3 mb-3 border position-relative animate__animated animate__fadeIn">
+                <div class="row">
+                    <div class="col-md-6 mb-2"><label class="small fw-bold">Institution</label><input name="Education[${eduCount}].Institution" class="form-control form-control-sm" required /></div>
+                    <div class="col-md-6 mb-2"><label class="small fw-bold">Degree</label><input name="Education[${eduCount}].Degree" class="form-control form-control-sm" required /></div>
+                    <div class="col-md-4"><label class="small fw-bold">Start Date</label><input name="Education[${eduCount}].StartDate" type="date" class="form-control form-control-sm" required /></div>
+                    <div class="col-md-4"><label class="small fw-bold">End Date</label><input name="Education[${eduCount}].EndDate" type="date" class="form-control form-control-sm" /></div>
+                    <div class="col-md-4"><label class="small fw-bold">GPA</label><input name="Education[${eduCount}].GPA" class="form-control form-control-sm" /></div>
+                </div>
+            </div>`;
+            document.getElementById('educationList').insertAdjacentHTML('beforeend', html);
+            eduCount++;
+        }
+
+        function addExperience() {
+            const html = `<div class="exp-entry p-3 bg-light rounded-3 mb-3 border animate__animated animate__fadeIn">
+                <div class="row">
+                    <div class="col-md-6 mb-2"><label class="small fw-bold">Company Name</label><input name="Experience[${expCount}].CompanyName" class="form-control form-control-sm" required /></div>
+                    <div class="col-md-6 mb-2"><label class="small fw-bold">Job Title</label><input name="Experience[${expCount}].JobTitle" class="form-control form-control-sm" required /></div>
+                    <div class="col-md-12 mb-2"><label class="small fw-bold">Description</label><textarea name="Experience[${expCount}].Description" class="form-control form-control-sm" rows="2"></textarea></div>
+                    <div class="col-md-6"><label class="small fw-bold">Start Date</label><input name="Experience[${expCount}].StartDate" type="date" class="form-control form-control-sm" required /></div>
+                    <div class="col-md-6"><label class="small fw-bold">End Date</label><input name="Experience[${expCount}].EndDate" type="date" class="form-control form-control-sm" /></div>
+                </div>
+            </div>`;
+            document.getElementById('experienceList').insertAdjacentHTML('beforeend', html);
+            expCount++;
+        }
+
+        function addSkill() {
+            const html = `<div class="col-md-6 skill-entry animate__animated animate__fadeIn">
+                <div class="input-group input-group-sm">
+                    <input name="Skills[${skillCount}].SkillName" class="form-control" required placeholder="Skill Name" />
+                    <select name="Skills[${skillCount}].ProficiencyLevel" class="form-select" style="max-width: 100px;">
+                        <option value="1">Beginner</option><option value="3" selected>Mid</option><option value="5">Expert</option>
+                    </select>
+                </div>
+            </div>`;
+            document.getElementById('skillsList').insertAdjacentHTML('beforeend', html);
+            skillCount++;
+        }
+    </script>
+}

@@ -1,0 +1,22 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  ResumeBuilder.Domain -> C:\Users\CDAC\Desktop\Shweta\SmartResumeBuilder\src\ResumeBuilder.Domain\ResumeBuilder.Domain\bin\Debug\net8.0\ResumeBuilder.Domain.dll
+  ResumeBuilder.Infrastructure -> C:\Users\CDAC\Desktop\Shweta\SmartResumeBuilder\src\ResumeBuilder.Infrastructure\ResumeBuilder.Infrastructure\bin\Debug\net8.0\ResumeBuilder.Infrastructure.dll
+  ResumeBuilder.Application -> C:\Users\CDAC\Desktop\Shweta\SmartResumeBuilder\src\ResumeBuilder.Application\ResumeBuilder.Application\bin\Debug\net8.0\ResumeBuilder.Application.dll
+C:\Users\CDAC\Desktop\Shweta\SmartResumeBuilder\src\ResumeBuilder.Web\ResumeBuilder.Web\Controllers\ResumeController.cs(46,47): error CS1061: 'IResumeService' does not contain a definition for 'CreateResumeFromWizardAsync' and no accessible extension method 'CreateResumeFromWizardAsync' accepting a first argument of type 'IResumeService' could be found (are you missing a using directive or an assembly reference?) [C:\Users\CDAC\Desktop\Shweta\SmartResumeBuilder\src\ResumeBuilder.Web\ResumeBuilder.Web\ResumeBuilder.Web.csproj]
+C:\Users\CDAC\Desktop\Shweta\SmartResumeBuilder\src\ResumeBuilder.Web\ResumeBuilder.Web\Controllers\AdminController.cs(22,65): warning CS8625: Cannot convert null literal to non-nullable reference type. [C:\Users\CDAC\Desktop\Shweta\SmartResumeBuilder\src\ResumeBuilder.Web\ResumeBuilder.Web\ResumeBuilder.Web.csproj]
+C:\Users\CDAC\Desktop\Shweta\SmartResumeBuilder\src\ResumeBuilder.Web\ResumeBuilder.Web\Controllers\AdminController.cs(66,35): error CS7036: There is no argument given that corresponds to the required parameter 'dto' of 'IJobRoleService.UpdateJobRoleAsync(int, CreateJobRoleDto)' [C:\Users\CDAC\Desktop\Shweta\SmartResumeBuilder\src\ResumeBuilder.Web\ResumeBuilder.Web\ResumeBuilder.Web.csproj]
+C:\Users\CDAC\Desktop\Shweta\SmartResumeBuilder\src\ResumeBuilder.Web\ResumeBuilder.Web\Views\Shared\_Layout.cshtml(148,10): error CS0103: The name 'media' does not exist in the current context [C:\Users\CDAC\Desktop\Shweta\SmartResumeBuilder\src\ResumeBuilder.Web\ResumeBuilder.Web\ResumeBuilder.Web.csproj]
+
+Build FAILED.
+
+C:\Users\CDAC\Desktop\Shweta\SmartResumeBuilder\src\ResumeBuilder.Web\ResumeBuilder.Web\Controllers\AdminController.cs(22,65): warning CS8625: Cannot convert null literal to non-nullable reference type. [C:\Users\CDAC\Desktop\Shweta\SmartResumeBuilder\src\ResumeBuilder.Web\ResumeBuilder.Web\ResumeBuilder.Web.csproj]
+C:\Users\CDAC\Desktop\Shweta\SmartResumeBuilder\src\ResumeBuilder.Web\ResumeBuilder.Web\Controllers\ResumeController.cs(46,47): error CS1061: 'IResumeService' does not contain a definition for 'CreateResumeFromWizardAsync' and no accessible extension method 'CreateResumeFromWizardAsync' accepting a first argument of type 'IResumeService' could be found (are you missing a using directive or an assembly reference?) [C:\Users\CDAC\Desktop\Shweta\SmartResumeBuilder\src\ResumeBuilder.Web\ResumeBuilder.Web\ResumeBuilder.Web.csproj]
+C:\Users\CDAC\Desktop\Shweta\SmartResumeBuilder\src\ResumeBuilder.Web\ResumeBuilder.Web\Controllers\AdminController.cs(66,35): error CS7036: There is no argument given that corresponds to the required parameter 'dto' of 'IJobRoleService.UpdateJobRoleAsync(int, CreateJobRoleDto)' [C:\Users\CDAC\Desktop\Shweta\SmartResumeBuilder\src\ResumeBuilder.Web\ResumeBuilder.Web\ResumeBuilder.Web.csproj]
+C:\Users\CDAC\Desktop\Shweta\SmartResumeBuilder\src\ResumeBuilder.Web\ResumeBuilder.Web\Views\Shared\_Layout.cshtml(148,10): error CS0103: The name 'media' does not exist in the current context [C:\Users\CDAC\Desktop\Shweta\SmartResumeBuilder\src\ResumeBuilder.Web\ResumeBuilder.Web\ResumeBuilder.Web.csproj]
+    1 Warning(s)
+    3 Error(s)
+
+Time Elapsed 00:00:01.34
+
+Workload updates are available. Run `dotnet workload list` for more information.

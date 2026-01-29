@@ -1,0 +1,85 @@
+================================================================================
+                            SMART RESUME BUILDER
+                       PROJECT & TESTING REPORT (2026)
+================================================================================
+
+--------------------------------------------------------------------------------
+1. TECHNOLOGY STACK & PROJECT LEVEL
+--------------------------------------------------------------------------------
+**Project Level**: Enterprise-Grade (Clean Architecture)
+**Framework**: .NET 8.0 (Core)
+**Architecture**: Domain-Driven Design (DDD) with Separation of Concerns.
+
+| Technology | Usage Context | Estimated Percentage |
+| :--- | :--- | :--- |
+| **C# (.NET 8)** | Backend Logic, Controllers, Services | 60% |
+| **Razor / HTML5** | User Interface (Views) | 20% |
+| **JavaScript** | Client-Side Validation, Dynamic Forms | 10% |
+| **SQL (MySQL)** | Database Schema & Data Storage | 5% |
+| **CSS (Bootstrap)** | Styling & Responsive Layouts | 5% |
+
+--------------------------------------------------------------------------------
+2. TESTING REPORT: UNIT TESTING
+--------------------------------------------------------------------------------
+**Scope**: Individual components (Services) tested in isolation.
+
+| Module | Test Case | Status | Remarks |
+| :--- | :--- | :--- | :--- |
+| **JobMatchingService** | Calculate Match Score (0-100%) | [PASS] | Verified math logic correctly handles empty skills. |
+| **JobMatchingService** | Proficiency Bonus Calculation | [PASS] | "Expert" level correctly adds bonus points. |
+| **ResumeService** | DTO Mapping (Entity -> View) | [PASS] | All fields (Name, Email) map correctly. |
+| **ResumeService** | Dashboard Stats Logic | [PASS] | Correctly groups skills by count. |
+| **Data Validation** | GPA Range (0-10.0) | [PASS] | Rejecting values > 10.0 verified. |
+
+--------------------------------------------------------------------------------
+3. TESTING REPORT: MANUAL & SANITY TESTING
+--------------------------------------------------------------------------------
+**Scope**: End-to-end verification of user flows (The "Did it break?" check).
+
+| Feature | Scenario | Status | Observation |
+| :--- | :--- | :--- | :--- |
+| **Authentication** | Login with `shweta01818@gmail.com` | [PASS] | Redirects to Dashboard immediately. |
+| **Resume Wizard** | Create Resume (Step 1-4) | [PASS] | Data persists across steps. "Blanks" bug fixed. |
+| **Resume Wizard** | Submit with Missing Data | [PASS] | Red error box appears. Inputs are NOT cleared. |
+| **AI Matching** | Generate Match for "Developer" | [PASS] | Algorithm runs after save. Matches appear in Preview. |
+| **PDF Generation** | Click "Download PDF" | [PASS] | File generated and downloaded by browser. |
+| **Build System** | Run `dotnet build` | [PASS] | Build succeeds with 0 Errors (Exit Code 0). |
+
+--------------------------------------------------------------------------------
+4. TESTING REPORT: INTEGRATION & ALPHA TESTING
+--------------------------------------------------------------------------------
+**Scope**: Testing how modules talk to each other (Database <-> Service <-> Controller).
+
+| Integration Point | Test Description | Status | Outcome |
+| :--- | :--- | :--- | :--- |
+| **App <-> Database** | Save Resume Transaction | [PASS] | Start Transaction -> Save Resume -> Save Skills -> Commit. |
+| **Controller <-> AI** | Trigger AI on Create | [PASS] | `JobMatchingService` successfully reads new resume from DB. |
+| **Identity <-> Role** | Admin vs User Access | [PASS] | Admin can see Admin Dashboard; User cannot. |
+
+--------------------------------------------------------------------------------
+5. FUTURE SCOPE (What can be added?)
+--------------------------------------------------------------------------------
+1.  **Generative AI Integration**: Replace the simple keyword matching algorithm with OpenAI/Gemini API to rewrite resume descriptions automatically.
+2.  **LinkedIn Import**: Allow users to import their profile directly via PDF or API.
+3.  **Cloud Storage**: Save PDF files to AWS S3 or Azure Blob Storage instead of generating on-the-fly.
+4.  **Email Notifications**: Send job alerts to users when a new high-match job is added by Admin.
+5.  **Multi-Language Support**: Add localization for Hindi/Marathi/etc.
+
+--------------------------------------------------------------------------------
+6. ADVANTAGES & DISADVANTAGES
+--------------------------------------------------------------------------------
+
+### Advantages (Pros)
+*   **Clean Architecture**: The code is organized professionally (Services separate from UI), making it easy to maintain and test.
+*   **No "Magic" Failures**: We fixed the "Silent Failure" bugs. The system is robust and tells the user exactly what is wrong.
+*   **Performance**: Using .NET 8 makes it extremely fast compared to older frameworks.
+*   **Scalable**: ready for Azure/AWS deployment due to its modular design.
+
+### Disadvantages (Cons)
+*   **Simple AI**: The current "AI" is a logic-based algorithm (Keyword Matching). It is not a Neural Network (Generative AI).
+*   **UI Complexity**: The "Wizard" logic is complex (JavaScript + C#), which can be hard for beginners to modify without reading the documentation.
+*   **Database Dependency**: Requires a running SQL server; cannot run "serverless" easily without configuration.
+
+================================================================================
+                                END OF REPORT
+================================================================================

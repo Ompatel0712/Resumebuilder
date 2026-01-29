@@ -1,0 +1,72 @@
+@model ResumeBuilder.Application.DTOs.DashboardStatsDto
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<div class="page-header">
+    <h1 class="page-title">Admin Dashboard</h1>
+    <p class="text-muted">System-wide monitoring and management.</p>
+</div>
+
+<div class="row g-4 mb-4 mt-1">
+    <div class="col-md-3">
+        <div class="stat-card shadow-sm">
+            <div class="stat-icon primary mb-2"><i class="fas fa-users"></i></div>
+            <div class="stat-label">Total Users</div>
+            <div class="stat-value h3 fw-bold">@Model.TotalUsers</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card shadow-sm">
+            <div class="stat-icon info mb-2"><i class="fas fa-file-invoice"></i></div>
+            <div class="stat-label">Total Resumes</div>
+            <div class="stat-value h3 fw-bold">@Model.TotalResumes</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card shadow-sm">
+            <div class="stat-icon success mb-2"><i class="fas fa-briefcase"></i></div>
+            <div class="stat-label">Active Job Roles</div>
+            <div class="stat-value h3 fw-bold">@ViewBag.JobRolesCount</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card shadow-sm">
+            <div class="stat-icon warning mb-2"><i class="fas fa-server"></i></div>
+            <div class="stat-label">System Health</div>
+            <div class="stat-value h3 fw-bold">98.2%</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="custom-card">
+            <div class="card-header p-3 border-bottom"><h5>Recent System Activity</h5></div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead class="table-light"><tr><th>Event</th><th>User</th><th>Context</th><th>Time</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="badge bg-success">User Reg</span></td><td>new_talent@gmail.com</td><td>New Registration</td><td>Just now</td></tr>
+                            <tr><td><span class="badge bg-primary">Resume Gen</span></td><td>demo@resumebuilder.com</td><td>PDF Generation</td><td>5 mins ago</td></tr>
+                            <tr><td><span class="badge bg-info">AI Match</span></td><td>admin@resumebuilder.com</td><td>Job Analysis</td><td>12 mins ago</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="custom-card">
+            <div class="card-header p-3 border-bottom"><h5>Quick Actions</h5></div>
+            <div class="card-body py-2">
+                <div class="list-group list-group-flush">
+                    <a asp-action="JobRoles" class="list-group-item list-group-item-action border-0 px-0"><i class="fas fa-cogs text-primary me-2"></i> Manage Job Roles</a>
+                    <a href="/swagger" target="_blank" class="list-group-item list-group-item-action border-0 px-0"><i class="fas fa-code text-info me-2"></i> Open API Docs</a>
+                    <a href="#" class="list-group-item list-group-item-action border-0 px-0 text-danger"><i class="fas fa-trash-alt me-2"></i> Purge Logs</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

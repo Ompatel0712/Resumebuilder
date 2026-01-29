@@ -1,0 +1,139 @@
+@model ResumeBuilder.Application.DTOs.ResumeDto
+@{
+    ViewData["Title"] = "Resume Preview";
+    var matches = ViewBag.Matches as IEnumerable<ResumeBuilder.Application.DTOs.JobMatchDto>;
+}
+
+<div class="page-header d-flex justify-content-between align-items-center mb-5">
+    <div>
+        <h1 class="page-title">Resume Preview</h1>
+        <p class="text-muted mb-0">Review your generated profile and download as PDF.</p>
+    </div>
+    <div class="dropdown">
+        <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+            <i class="fas fa-download me-2"></i>Download PDF
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
+            <li><a class="dropdown-item" asp-action="DownloadPdf" asp-route-id="@Model.ResumeId" asp-route-template="Modern"><i class="fas fa-bolt text-primary me-2"></i> Modern Template</a></li>
+            <li><a class="dropdown-item" asp-action="DownloadPdf" asp-route-id="@Model.ResumeId" asp-route-template="Classic"><i class="fas fa-landmark text-secondary me-2"></i> Classic Template</a></li>
+            <li><a class="dropdown-item" asp-action="DownloadPdf" asp-route-id="@Model.ResumeId" asp-route-template="Corporate"><i class="fas fa-briefcase text-dark me-2"></i> Corporate Template</a></li>
+        </ul>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="custom-card shadow-sm p-5 bg-white mb-4">
+            <div class="text-center mb-5 border-bottom pb-4">
+                <h1 class="fw-bold mb-1">@Model.FullName</h1>
+                <div class="text-muted d-flex justify-content-center gap-3">
+                    <span><i class="fas fa-envelope me-1"></i> @Model.Email</span>
+                    @if (!string.IsNullOrEmpty(Model.Phone)) { <span><i class="fas fa-phone me-1"></i> @Model.Phone</span> }
+                    @if (!string.IsNullOrEmpty(Model.Address)) { <span><i class="fas fa-map-marker-alt me-1"></i> @Model.Address</span> }
+                </div>
+            </div>
+
+
+            <div class="mb-5">
+                <h5 class="fw-bold text-uppercase border-bottom pb-2 mb-3">Professional Summary</h5>
+                <p class="text-dark">@Model.Summary</p>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.LinkedInUrl) || !string.IsNullOrEmpty(Model.GitHubUrl) || !string.IsNullOrEmpty(Model.PortfolioUrl))
+            {
+                <div class="mb-5">
+                    <h5 class="fw-bold text-uppercase border-bottom pb-2 mb-3">Links</h5>
+                    <div class="d-flex flex-wrap gap-3">
+                        @if (!string.IsNullOrEmpty(Model.LinkedInUrl))
+                        {
+                            <a href="@Model.LinkedInUrl" target="_blank" class="text-decoration-none"><i class="fab fa-linkedin me-1"></i> LinkedIn</a>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.GitHubUrl))
+                        {
+                            <a href="@Model.GitHubUrl" target="_blank" class="text-decoration-none"><i class="fab fa-github me-1"></i> GitHub</a>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.PortfolioUrl))
+                        {
+                            <a href="@Model.PortfolioUrl" target="_blank" class="text-decoration-none"><i class="fas fa-globe me-1"></i> Portfolio</a>
+                        }
+                    </div>
+                </div>
+            }
+
+
+            <div class="mb-5">
+                <h5 class="fw-bold text-uppercase border-bottom pb-2 mb-3">Expertise & Skills</h5>
+                <div class="d-flex flex-wrap gap-2">
+                    @foreach (var skill in Model.Skills) {
+                        <div class="badge bg-light text-dark border p-2">
+                            @skill.SkillName
+                            <div class="text-warning d-inline ms-1 mt-1">
+                                @for(int i=0; i<skill.ProficiencyLevel; i++) { <i class="fas fa-star x-small"></i> }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="mb-5">
+                <h5 class="fw-bold text-uppercase border-bottom pb-2 mb-3">Experience</h5>
+                @foreach (var exp in Model.ExperienceDetails.OrderByDescending(e => e.StartDate)) {
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between">
+                            <h6 class="fw-bold mb-0">@exp.JobTitle</h6>
+                            <span class="text-muted small">@exp.StartDate.ToString("MMM yyyy") - @(exp.IsCurrent ? "Present" : exp.EndDate?.ToString("MMM yyyy"))</span>
+                        </div>
+                        <div class="text-primary small fw-semibold">@exp.CompanyName</div>
+                        <p class="mt-2 small">@exp.Description</p>
+                    </div>
+                }
+            </div>
+
+            <div>
+                <h5 class="fw-bold text-uppercase border-bottom pb-2 mb-3">Education</h5>
+                @foreach (var edu in Model.EducationDetails.OrderByDescending(e => e.StartDate)) {
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <h6 class="fw-bold mb-0">@edu.Degree</h6>
+                            <span class="text-muted small">@edu.StartDate.Year - @(edu.EndDate?.Year ?? DateTime.Now.Year)</span>
+                        </div>
+                        <div class="text-muted small">@edu.Institution @(edu.GPA.HasValue ? $"| GPA: {edu.GPA}" : "")</div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="custom-card shadow-sm border-primary border-top border-4">
+            <div class="card-header bg-white p-3 border-bottom d-flex align-items-center">
+                <i class="fas fa-robot text-primary me-2"></i>
+                <h5 class="mb-0 fw-bold">AI Insight</h5>
+            </div>
+            <div class="card-body">
+                <h6 class="small fw-bold text-uppercase text-muted mb-3">Top Career Matches</h6>
+                @if (matches != null && matches.Any()) {
+                    @foreach (var match in matches.Take(3)) {
+                        <div class="mb-3 border-bottom pb-2">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="fw-semibold small">@match.JobRoleName</span>
+                                <span class="text-primary fw-bold">@match.MatchScore.ToString("F0")%</span>
+                            </div>
+                            <div class="progress" style="height: 4px;"><div class="progress-bar" style="width: @match.MatchScore%"></div></div>
+                        </div>
+                    }
+                    <div class="d-grid mt-3">
+                        <a asp-controller="JobMatch" asp-action="Matches" asp-route-resumeId="@Model.ResumeId" class="btn btn-sm btn-outline-primary">View Gap Analysis</a>
+                    </div>
+                } else {
+                    <p class="text-muted small text-center py-3">No matching analytics available for this profile yet.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .x-small { font-size: 0.65rem; }
+    .badge .fas.fa-star { font-size: 0.5rem; }
+</style>

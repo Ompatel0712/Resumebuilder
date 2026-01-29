@@ -1,0 +1,275 @@
+# Deep Dive Code Breakdown: Smart Resume Builder Flow
+
+This document maps every user action to the specific code lines that execute, explaining "Where it forms" (View) and "Where it redirects" (Controller).
+
+---
+
+## SCENARIO 1: STARTING & LOGGING IN
+
+### Step 1: Application Start
+**User Action**: Opens `http://localhost:5000`
+**Code File**: `src/ResumeBuilder.Web/Program.cs`
+**Execution**:
+- **Lines 170**: `app.MapControllerRoute(...)` tells the app: "If no address is typed, go to `HomeController`, Action `Index`".
+```csharp
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+```
+**Redirects To**: `HomeController.Index()`
+
+### Step 2: The Landing Page
+**User Action**: Sees the Welcome Screen.
+**Code File**: `src/ResumeBuilder.Web/Controllers/HomeController.cs`
+**Execution**:
+- **Line 11**: `public IActionResult Index()` runs.
+- **Line 13**: `return View();` -> Looks for `Views/Home/Index.cshtml`.
+```csharp
+public IActionResult Index()
+{
+    return View();
+}
+```
+**Result**: The user sees the landing page.
+
+### Step 3: Clicking "Login"
+**User Action**: User clicks "Login" button.
+**Code File**: `src/ResumeBuilder.Web/Controllers/AccountController.cs`
+**Execution**:
+- **Line 66**: `public IActionResult Login()` receives the request.
+- **Line 68**: Checks `if (User.Identity.IsAuthenticated)`. If yes, sends them to Dashboard.
+- **Line 70**: `return View();` -> Renders `Views/Account/Login.cshtml`.
+```csharp
+[HttpGet]
+public IActionResult Login()
+{
+    if (User.Identity?.IsAuthenticated == true)
+        return RedirectToAction("Index", "Dashboard");
+    return View();
+}
+```
+**Forms In**: `Views/Account/Login.cshtml` (The User Interface with Email/Password boxes).
+
+### Step 4: Submitting Login
+**User Action**: Enters "shwetap92900@gmail.com" and clicks Submit.
+**Code File**: `src/ResumeBuilder.Web/Controllers/AccountController.cs`
+**Execution**:
+- **Line 75**: `public async Task<IActionResult> Login(LoginViewModel model)` receives the data.
+- **Line 79**: `_signInManager.PasswordSignInAsync(...)` checks the password in the database.
+- **Line 80**: `if (result.Succeeded)` -> The password was correct!
+- **Line 82**: `return RedirectToAction("Index", "Dashboard");`
+```csharp
+[HttpPost]
+[ValidateAntiForgeryToken]
+public async Task<IActionResult> Login(LoginViewModel model)
+{
+    if (ModelState.IsValid)
+    {
+        var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
+        if (result.Succeeded)
+        {
+            return RedirectToAction("Index", "Dashboard");
+        }
+        ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+    }
+    return View(model);
+}
+```
+**Redirects To**: `DashboardController`
+
+---
+
+## SCENARIO 2: CREATING A RESUME (THE WIZARD)
+
+### Step 1: Entering the Wizard
+**User Action**: Clicks "Create Resume" on Dashboard.
+**Code File**: `src/ResumeBuilder.Web/Controllers/ResumeController.cs`
+**Execution**:
+- **Line 34**: `public IActionResult Create()` runs.
+- **Line 36**: `return View("Wizard", new ResumeWizardDto());` creates a blank form.
+```csharp
+[HttpGet]
+public IActionResult Create()
+{
+    return View("Wizard", new ResumeWizardDto());
+}
+```
+**Forms In**: `Views/Resume/Wizard.cshtml`
+- **Line 1**: `@model ResumeWizardDto` (The blank form object).
+- **Line 15**: `<form asp-action="Create">` (Sets destination for "Finish" button).
+```razor
+@model ResumeBuilder.Application.DTOs.ResumeWizardDto
+...
+<form asp-action="Create" method="post" id="resumeForm">
+```
+
+### Step 2: Filling the Form (Client-Side)
+**User Action**: Typing "Bachelor's Degree", adding "Java Skill".
+**Code File**: `Views/Resume/Wizard.cshtml`
+**Execution**:
+- **Line 65**: `@if (Model.CurrentStep == 2)` -> Shows Education section.
+- **JavaScript**: The `nextStep()` function hides Step 1 (`class="d-none"`) and shows Step 2.
+- **Data**: All your typing is stored in the browser's form inputs (matches `ResumeWizardDto`).
+```razor
+<!-- From Wizard.cshtml -->
+<div class="step-content @(Model.CurrentStep == 1 ? "" : "d-none")" id="step1">
+    <!-- Form Inputs for Personal Info -->
+</div>
+```
+
+### Step 3: Clicking "Finish & Generate"
+**User Action**: Submits the final step.
+**Code File**: `src/ResumeBuilder.Web/Controllers/ResumeController.cs`
+**Execution**:
+- **Line 41**: `public async Task<IActionResult> Create(ResumeWizardDto model)` receives ALL the data.
+- **Line 46**: `if (ModelState.IsValid)` checks rules (e.g., GPA 0-10).
+    *   **IF ERROR**:
+        *   **Line 58**: `return View("Wizard", model);`
+        *   **Effect**: Re-loads `Wizard.cshtml` BUT keeps your data (`model`) and shows red errors. User fixes and resubmits.
+    *   **IF SUCCESS**:
+        *   **Line 49**: `_resumeService.SaveResumeWizardAsync(model, userId)` runs.
+        *   **Line 52**: `_matchingService.CalculateJobMatchesAsync(...)` runs the AI.
+        *   **Line 54**: `return RedirectToAction(nameof(Preview), ...);`
+```csharp
+[HttpPost]
+[ValidateAntiForgeryToken]
+public async Task<IActionResult> Create(ResumeWizardDto model)
+{
+    if (ModelState.IsValid)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        // Save to Database
+        var resume = await _resumeService.SaveResumeWizardAsync(model, userId!);
+        
+        // Trigger AI matching
+        await _matchingService.CalculateJobMatchesAsync(resume.ResumeId);
+        
+        return RedirectToAction(nameof(Preview), new { id = resume.ResumeId });
+    }
+    
+    // ERROR HANDLING (PREVENTS BLANKS)
+    model.Education ??= new List<EducationDto>();
+    model.Experience ??= new List<ExperienceDto>();
+    model.Skills ??= new List<SkillDto>();
+
+    return View("Wizard", model);
+}
+```
+**Redirects To**: `ResumeController.Preview(id)`
+
+---
+
+## SCENARIO 3: SAVING TO DATABASE (BEHIND THE SCENES)
+
+### Step 1: Saving Data
+**Code File**: `src/ResumeBuilder.Application/Services/ResumeService.cs`
+**Method**: `SaveResumeWizardAsync`
+**Execution**:
+- **Line 291**: `BeginTransactionAsync()` -> Safety first!
+- **Line 296**: `new Resume { ... }` -> Maps your Name/Email to the Resume Table.
+- **Line 316**:Loops through every school you added.
+- **Line 363**: `SaveChangesAsync()` -> Actually writes to the SQL Database.
+```csharp
+public async Task<ResumeDto> SaveResumeWizardAsync(ResumeWizardDto wizardDto, string userId)
+{
+    await _unitOfWork.BeginTransactionAsync();
+    try 
+    {
+        var resume = new Resume { ... }; // Mapped from DTO
+        await _unitOfWork.Resumes.AddAsync(resume);
+        await _unitOfWork.SaveChangesAsync();
+
+        foreach (var edu in wizardDto.Education) { ... } // Save Education
+        foreach (var exp in wizardDto.Experience) { ... } // Save Experience
+        
+        await _unitOfWork.SaveChangesAsync();
+        await _unitOfWork.CommitTransactionAsync();
+        return ...;
+    }
+    catch { await _unitOfWork.RollbackTransactionAsync(); throw; }
+}
+```
+
+### Step 2: AI Job Matching
+**Code File**: `src/ResumeBuilder.Application/Services/JobMatchingService.cs`
+**Method**: `CalculateJobMatchesAsync`
+**Execution**:
+- **Line 38**: `userSkills.Intersect(requiredSkills)` -> Finds "C#" in both your resume and the job desc.
+- **Line 42**: Calculates Math: `(Matches / Total) * 100`.
+- **Line 50**: Adds Proficiency Bonus (if you are Expert).
+- **Line 84**: Saves the score to `ResumeJobMatch` table.
+```csharp
+public async Task<IEnumerable<JobMatchDto>> CalculateJobMatchesAsync(int resumeId)
+{
+    // ... loop through jobs ...
+    var matchedSkills = userSkills.Intersect(requiredSkills).ToList();
+    
+    decimal matchScore = 0;
+    if (requiredSkills.Count > 0)
+    {
+        matchScore = (decimal)matchedSkills.Count / requiredSkills.Count * 100;
+    }
+    
+    // Add Bonuses
+    matchScore += CalculateProficiencyBonus(resume.Skills, matchedSkills);
+    
+    // Save to DB
+    var newMatch = new ResumeJobMatch { MatchScore = matchScore, ... };
+    await matchRepo.AddAsync(newMatch);
+    await _unitOfWork.SaveChangesAsync();
+}
+```
+
+---
+
+## SCENARIO 4: VIEWING & DOWNLOADING
+
+### Step 1: The Preview Page
+**User Action**: user lands here after "Finish".
+**Code File**: `src/ResumeBuilder.Web/Controllers/ResumeController.cs`
+**Execution**:
+- **Line 62**: `public async Task<IActionResult> Preview(int id)` runs.
+- **Line 65**: `_resumeService.GetResumeForUserAsync(...)` gets your saved data.
+- **Line 68**: Gets your AI Match scores.
+- **Line 69**: `return View(resume);`
+```csharp
+[HttpGet]
+public async Task<IActionResult> Preview(int id)
+{
+    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    var resume = await _resumeService.GetResumeForUserAsync(id, userId!);
+    
+    ViewBag.Matches = await _matchingService.GetJobMatchesForResumeAsync(id);
+    return View(resume);
+}
+```
+**Forms In**: `Views/Resume/Preview.cshtml` (Shows your resume nicely formatted).
+
+### Step 2: Downloading PDF
+**User Action**: Clicks "Download PDF".
+**Code File**: `src/ResumeBuilder.Web/Controllers/ResumeController.cs`
+**Execution**:
+- **Line 73**: `public async Task<IActionResult> DownloadPdf(...)`.
+- **Line 79**: `_pdfService.GenerateResumePdfAsync(...)` -> Creates the file in memory.
+- **Line 80**: `return File(pdfBytes, "application/pdf", ...)` -> Browser starts the download.
+```csharp
+[HttpGet]
+public async Task<IActionResult> DownloadPdf(int id, string template = "Modern")
+{
+    var resume = await _resumeService.GetResumeForUserAsync(id, userId!);
+    var pdfBytes = await _pdfService.GenerateResumePdfAsync(resume, template);
+    return File(pdfBytes, "application/pdf", $"{resume.FullName}_Resume.pdf");
+}
+```
+
+---
+
+## SUMMARY OF FLOW
+
+| User Action | Page (View) | Code Executed (Controller/Service) | Next Step |
+| :--- | :--- | :--- | :--- |
+| **Open App** | - | `HomeController.Index` | Show Home Page |
+| **Login** | `Login.cshtml` | `AccountController.Login` | Redirect to Dashboard |
+| **Click Create** | `Dashboard/Index` | `ResumeController.Create` (GET) | Show Wizard Form |
+| **Submit Form** | `Wizard.cshtml` | `ResumeController.Create` (POST) | Save DB -> Run AI -> Redirect |
+| **View Result** | `Preview.cshtml` | `ResumeController.Preview` | Show Resume + Matches |

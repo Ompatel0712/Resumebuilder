@@ -1,0 +1,136 @@
+@model ResumeBuilder.Application.DTOs.DashboardStatsDto
+@{
+    ViewData["Title"] = "Dashboard";
+    var resumes = ViewBag.Resumes as IEnumerable<ResumeBuilder.Application.DTOs.ResumeDto> ?? new List<ResumeBuilder.Application.DTOs.ResumeDto>();
+}
+
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col">
+            <h1 class="page-title">Welcome, @User.Identity?.Name!</h1>
+            <p class="text-muted mb-0">Here's what's happening with your resumes today.</p>
+        </div>
+        <div class="col-auto">
+            <a asp-controller="Resume" asp-action="Create" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Build New Resume
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4 mt-1">
+    <div class="col-md-4">
+        <div class="stat-card shadow-sm">
+            <div class="d-flex align-items-center mb-2">
+                <div class="stat-icon primary me-3"><i class="fas fa-file-alt"></i></div>
+                <div class="stat-label">Total Resumes</div>
+            </div>
+            <div class="stat-value h2 fw-bold">@Model.TotalResumes</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card shadow-sm">
+            <div class="d-flex align-items-center mb-2">
+                <div class="stat-icon info me-3"><i class="fas fa-briefcase"></i></div>
+                <div class="stat-label">Job Matches</div>
+            </div>
+            <div class="stat-value h2 fw-bold">@Model.TotalJobMatches</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card shadow-sm">
+            <div class="d-flex align-items-center mb-2">
+                <div class="stat-icon success me-3"><i class="fas fa-chart-line"></i></div>
+                <div class="stat-label">Avg. Match Score</div>
+            </div>
+            <div class="stat-value h2 fw-bold">@Model.AverageMatchScore.ToString("F1")%</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="custom-card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center p-3 border-bottom">
+                <h5 class="mb-0">Recent Resumes</h5>
+                <a asp-controller="Resume" asp-action="Index" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body">
+                @if (!resumes.Any()) {
+                    <div class="text-center py-5">
+                        <img src="https://illustrations.popsy.co/gray/writing.svg" style="width: 150px;" class="mb-3 opacity-50">
+                        <h6>No resumes built yet.</h6>
+                        <a asp-controller="Resume" asp-action="Create" class="btn btn-primary btn-sm mt-2">Create Now</a>
+                    </div>
+                } else {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light"><tr><th>Title</th><th>Skills</th><th>Last Updated</th><th>Actions</th></tr></thead>
+                            <tbody>
+                                @foreach (var resume in resumes.Take(5)) {
+                                    <tr>
+                                        <td><div class="fw-semibold">@resume.Title</div></td>
+                                        <td><span class="badge bg-light text-dark border">@resume.Skills.Count Skills</span></td>
+                                        <td>@resume.UpdatedAt.ToString("MMM dd, yyyy")</td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <a asp-controller="Resume" asp-action="Preview" asp-route-id="@resume.ResumeId" class="btn btn-sm btn-light"><i class="fas fa-eye"></i></a>
+                                                <a asp-controller="Resume" asp-action="DownloadPdf" asp-route-id="@resume.ResumeId" class="btn btn-sm btn-light text-primary"><i class="fas fa-download"></i></a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="custom-card mb-4">
+            <div class="card-header p-3 border-bottom"><h5 class="mb-0">Top Job Matches</h5></div>
+            <div class="card-body">
+                @if (!Model.TopJobMatches.Any()) {
+                    <p class="text-center text-muted py-4">No matches found yet.</p>
+                } else {
+                    @foreach (var match in Model.TopJobMatches) {
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <div class="fw-semibold small">@match.JobRoleName</div>
+                                <div class="text-primary fw-bold small">@match.MatchScore.ToString("F0")%</div>
+                            </div>
+                            <div class="progress" style="height: 6px;"><div class="progress-bar" style="width: @match.MatchScore%"></div></div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+        <div class="custom-card">
+            <div class="card-header p-3 border-bottom"><h5 class="mb-0">Skills Distribution</h5></div>
+            <div class="card-body"><canvas id="skillsChart" height="220"></canvas></div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var ctx = document.getElementById('skillsChart').getContext('2d');
+            var skillsData = @Html.Raw(Json.Serialize(Model.SkillDistribution));
+            if (skillsData && skillsData.length > 0) {
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: skillsData.map(s => s.skillName),
+                        datasets: [{
+                            data: skillsData.map(s => s.count),
+                            backgroundColor: ['#4f46e5', '#06b6d4', '#10b981', '#f59e0b', '#ef4444']
+                        }]
+                    },
+                    options: { responsive: true, plugins: { legend: { display: false } }, cutout: '70%' }
+                });
+            }
+        });
+    </script>
+}
