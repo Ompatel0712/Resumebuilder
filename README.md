@@ -74,8 +74,8 @@ You can run these commands in the terminal (CMD/PowerShell) from the project roo
 6. Set **ResumeBuilder.Web** as Startup Project and press **F5**.
 
 ## 🔑 Default Login
-- **Admin**: `shweta01818@gmail.com` / `Shweta@24`
-- **User**: `shwetap92900@gmail.com` / `Shweta@25`
+- **Admin**: `omipatel288@gmail.com` / `OmPatel123`
+- **User**: `omipatel288@gmail.com` / `OmPatel123`
 
 ## Execution (Brief)
 1. **Restore & Build**:
